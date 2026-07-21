@@ -146,9 +146,9 @@ const stations = {
       rawName:'生香菇片' }
   ]},
   s1: { name:'S1', items:[
-    { key:'mushroom_raw', name:'生混菇', mode:'cookYieldWeight', yieldRatio:0.8, rawName:'生混菇', rawPackSize:1000, rawPackUnit:'盒' },
-    { key:'mushroom_ingredients', name:'生混菇(原料回推)', mode:'weightBox', base:2900, boxSize:1000, boxUnit:'盒',
+    { key:'mushroom_ingredients', name:'炒香菇（盤點盒數→原料）', mode:'weightBox', base:2900, boxSize:1000, boxUnit:'盒',
       ing:[['香菇',1000],['蘑菇',1000],['鴻禧菇',900,150,'包']] },
+    { key:'mushroom_raw', name:'生混菇（熟重→生料）', mode:'cookYieldWeight', yieldRatio:0.8, rawName:'生混菇', rawPackSize:1000, rawPackUnit:'盒' },
     { key:'chive', name:'蝦夷蔥', mode:'packInv', packSize:25, packUnit:'盒', displayUnit:'kg' },
     { key:'mushroomjuice', name:'菇汁', mode:'packInv', packSize:500, packUnit:'盒' },
     { key:'chickenthigh', name:'分雞腿', mode:'packInv', packSize:110, packUnit:'份', displayUnit:'kg' },
@@ -163,7 +163,33 @@ const stations = {
       ing:[['澄清牛肉汁',50],['褐色雞湯',50,200,'包']] },
     { key:'eggplant', name:'茄子', mode:'packInv', packSize:280, packUnit:'份', displayUnit:'kg' }
   ]},
-  s2: { name:'S2', items:[] }
+  s2: { name:'S2', items:[
+    { key:'parsley_chopped', name:'巴西里碎', mode:'packInv', packSize:50, packUnit:'盒', displayUnit:'kg' },
+    { key:'parsley_leaf', name:'巴西里葉', mode:'packInv', packSize:100, packUnit:'盒', displayUnit:'kg' },
+    { key:'spinach', name:'菠菜', mode:'packInv', packSize:150, packUnit:'盒', displayUnit:'kg' },
+    { key:'shrimp', name:'蝦仁', mode:'packInv2', boxSize:400, boxUnit:'盒', bagSize:3000, bagUnit:'包',
+      customNote:'1盒8份，每份50g，共400g；蝦仁3kg/包。' },
+    { key:'squid_strip', name:'墨魚絲', mode:'packInv2', boxSize:300, boxUnit:'盒', bagSize:640, bagUnit:'包',
+      customNote:'300g/盒；墨魚絲640g/包。' },
+    { key:'shallot_chopped', name:'甘蔥碎', mode:'packInv', packSize:50, packUnit:'盒', displayUnit:'kg' },
+    { key:'scallion_strip', name:'蔥絲', mode:'packInv', packSize:30, packUnit:'盒', displayUnit:'kg' },
+    { key:'green_chili', name:'綠辣椒片', mode:'packInv', packSize:50, packUnit:'盒', displayUnit:'kg' },
+    { key:'green_salsa', name:'綠沙沙醬', mode:'weightBox', base:450, boxSize:450, boxUnit:'罐',
+      ing:[['巴西里青醬',250,250,'包'],['玉米糖膠',50,1000,'包'],['鹽',2,1000,'包'],['RO水',150]],
+      customNote:'每罐盤點450g；基礎配方：巴西里青醬250g＋玉米糖膠50g＋鹽2g＋RO水150g。' },
+    { key:'bolognese', name:'波隆那肉醬', mode:'yieldPackInv', boxSize:1800, boxUnit:'桶',
+      rawPackSize:2000, rawPackUnit:'包', yieldPerPack:1800,
+      customNote:'波隆那肉醬2kg/包，煮完約得1800g，等於1桶。' },
+    { key:'joel_tomato', name:'喬爾蕃茄醬', mode:'joelTomato', boxSize:1650, boxUnit:'桶',
+      customNote:'1罐喬爾碎粒番茄2.5kg約可做1.25桶；每罐另加糖53.5g、鹽17.8g。' },
+    { key:'vodka_spicy', name:'伏特加辣番茄醬', mode:'bucketPack', boxUnit:'桶', packFactor:2, packUnit:'包' },
+    { key:'lamb_sauce', name:'燉羊肉醬', mode:'bucketPack', boxUnit:'桶', packFactor:1, packUnit:'包' },
+    { key:'squid_meat_sauce', name:'墨魚肉醬', mode:'bucketPack', boxUnit:'桶', packFactor:1, packUnit:'包' },
+    { key:'clam_sauce', name:'蛤蠣醬', mode:'bucketPack', boxUnit:'桶', packFactor:2, packUnit:'包' },
+    { key:'shrimp_sauce', name:'蝦醬', mode:'weightBox', base:1600, boxSize:1600, boxUnit:'桶',
+      ing:[['紅蝦高湯',1600,1600,'BAG'],['艾樂薇35%動物鮮奶油',800,1000,'罐'],['鹽',36,1000,'包']],
+      customNote:'每桶成品1600g；每桶原料：紅蝦高湯1.6kg＋鮮奶油800g＋鹽36g。' }
+  ]}
 };
 
 function fmt(n){ return (Math.round(n*10)/10).toLocaleString(); }
@@ -228,6 +254,9 @@ function showStation(stationKey){
     if(item.mode==='weight') controlHtml = inputRowHtml('目標總重','in-'+item.key,'例如 500','g');
     if(item.mode==='weightBox'){
       controlHtml = inputRowHtml(`盤點${item.boxUnit}數(${item.boxSize}g/${item.boxUnit})`,'in-'+item.key,'例如 3',item.boxUnit);
+      if(item.key==='mushroom_ingredients'){
+        noteHtml = '<p class="note">基礎配方：香菇1kg＋蘑菇1kg＋鴻禧菇6包（150g/包），混勻後以1kg/盒分裝。</p>';
+      }
     }
     if(item.mode==='burrata'){
       controlHtml = inputRowHtml('醃汁總重(玉米糖漿+蕃茄醃汁)','in-'+item.key,'例如 300','g');
@@ -263,6 +292,16 @@ function showStation(stationKey){
       controlHtml = inputRowHtml('熟品盤點重量','in-'+item.key,'例如 800','g');
       const packNote = item.rawPackSize ? `，${item.rawName}換算單位 ${item.rawPackSize}g/${item.rawPackUnit}` : '';
       noteHtml = `<p class="note">生熟轉換率 ${item.yieldRatio*100}%（1kg生料處理完約${item.yieldRatio*1000}g熟重）${packNote}</p>`;
+    }
+    if(item.mode==='yieldPackInv'){
+      controlHtml = inputRowHtml(`盤點${item.boxUnit}數(${item.boxSize}g/${item.boxUnit})`,'in-'+item.key,'例如 2',item.boxUnit);
+    }
+    if(item.mode==='joelTomato'){
+      controlHtml = inputRowHtml(`盤點${item.boxUnit}數(${item.boxSize}g/${item.boxUnit})`,'in-'+item.key,'例如 2',item.boxUnit);
+    }
+    if(item.mode==='bucketPack'){
+      controlHtml = inputRowHtml(`盤點${item.boxUnit}數`,'in-'+item.key,'例如 2',item.boxUnit);
+      noteHtml = `<p class="note">每${item.boxUnit}換算 ${item.packFactor} ${item.packUnit}</p>`;
     }
     if(item.customNote) noteHtml = `<p class="note">${item.customNote}</p>`;
 
@@ -342,6 +381,28 @@ function showStation(stationKey){
         if(item.rawPackSize){
           rows.push(['換算'+item.rawPackUnit+'數', fmt(rawNeeded/item.rawPackSize)+' '+item.rawPackUnit]);
         }
+      } else if(item.mode==='yieldPackInv'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['成品總重','—'],['需要包數','—']]); return; }
+        const totalG = v * item.boxSize;
+        const packs = totalG / item.yieldPerPack;
+        rows = [
+          ['成品總重', fmtKg(totalG)+'（'+fmt(v)+' '+item.boxUnit+'）'],
+          ['需要波隆那肉醬', fmt(packs)+' '+item.rawPackUnit],
+          ['原料包裝重量', fmtKg(packs*item.rawPackSize)]
+        ];
+      } else if(item.mode==='joelTomato'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['成品總重','—'],['番茄罐頭','—'],['糖','—'],['鹽','—']]); return; }
+        const cans = v / 1.25;
+        rows = [
+          ['成品總重', fmtKg(v*item.boxSize)+'（'+fmt(v)+' '+item.boxUnit+'）'],
+          ['喬爾碎粒番茄(大)', fmt(cans)+' 罐（2.5kg/罐）'],
+          ['番茄罐頭重量', fmtKg(cans*2500)],
+          ['糖', fmt(cans*53.5)+' g'],
+          ['鹽', fmt(cans*17.8)+' g']
+        ];
+      } else if(item.mode==='bucketPack'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['換算包數','—']]); return; }
+        rows = [['換算包數', fmt(v*item.packFactor)+' '+item.packUnit]];
       }
       outEl.innerHTML = rowsHtml(rows);
     }
