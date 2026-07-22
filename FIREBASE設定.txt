@@ -1,0 +1,9 @@
+Kitchen OS v1.0 Firebase 多人同步版
+
+1. 將本資料夾所有檔案上傳並覆蓋 GitHub repository 的 main 分支。
+2. 等待 GitHub Pages 約 1–3 分鐘更新。
+3. 用兩支不同手機測試同一天、同一站台：A 儲存後，B 重新進入該站台應看到相同數字。
+4. Firestore 目前是測試模式，畫面顯示規則於 2026/08/21 到期。正式使用前請設定登入或較嚴格的安全規則。
+
+雲端集合：dailyInventory
+文件 ID：central-cold-YYYY-MM-DD、central-pizza-YYYY-MM-DD、central-s2-YYYY-MM-DD、central-s1-YYYY-MM-DD，以及 prep-*。
