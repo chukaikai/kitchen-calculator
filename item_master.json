@@ -1,0 +1,632 @@
+{
+  "version": "3.1.0",
+  "idRule": "央廚次序 1～103 對應 CM001～CM103",
+  "stationRanges": {
+    "cold": [1, 28],
+    "pizza": [29, 41],
+    "s2": [42, 71],
+    "s1": [72, 103]
+  },
+  "items": [
+
+    {
+        "itemId": "CM001",
+        "centralSeq": 1,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM002",
+        "centralSeq": 2,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM003",
+        "centralSeq": 3,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM004",
+        "centralSeq": 4,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM005",
+        "centralSeq": 5,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM006",
+        "centralSeq": 6,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM007",
+        "centralSeq": 7,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM008",
+        "centralSeq": 8,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM009",
+        "centralSeq": 9,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM010",
+        "centralSeq": 10,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM011",
+        "centralSeq": 11,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM012",
+        "centralSeq": 12,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM013",
+        "centralSeq": 13,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM014",
+        "centralSeq": 14,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM015",
+        "centralSeq": 15,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM016",
+        "centralSeq": 16,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM017",
+        "centralSeq": 17,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM018",
+        "centralSeq": 18,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM019",
+        "centralSeq": 19,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM020",
+        "centralSeq": 20,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM021",
+        "centralSeq": 21,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM022",
+        "centralSeq": 22,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM023",
+        "centralSeq": 23,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM024",
+        "centralSeq": 24,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM025",
+        "centralSeq": 25,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM026",
+        "centralSeq": 26,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM027",
+        "centralSeq": 27,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM028",
+        "centralSeq": 28,
+        "station": "cold",
+        "active": true
+    },
+    {
+        "itemId": "CM029",
+        "centralSeq": 29,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM030",
+        "centralSeq": 30,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM031",
+        "centralSeq": 31,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM032",
+        "centralSeq": 32,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM033",
+        "centralSeq": 33,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM034",
+        "centralSeq": 34,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM035",
+        "centralSeq": 35,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM036",
+        "centralSeq": 36,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM037",
+        "centralSeq": 37,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM038",
+        "centralSeq": 38,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM039",
+        "centralSeq": 39,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM040",
+        "centralSeq": 40,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM041",
+        "centralSeq": 41,
+        "station": "pizza",
+        "active": true
+    },
+    {
+        "itemId": "CM042",
+        "centralSeq": 42,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM043",
+        "centralSeq": 43,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM044",
+        "centralSeq": 44,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM045",
+        "centralSeq": 45,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM046",
+        "centralSeq": 46,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM047",
+        "centralSeq": 47,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM048",
+        "centralSeq": 48,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM049",
+        "centralSeq": 49,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM050",
+        "centralSeq": 50,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM051",
+        "centralSeq": 51,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM052",
+        "centralSeq": 52,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM053",
+        "centralSeq": 53,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM054",
+        "centralSeq": 54,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM055",
+        "centralSeq": 55,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM056",
+        "centralSeq": 56,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM057",
+        "centralSeq": 57,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM058",
+        "centralSeq": 58,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM059",
+        "centralSeq": 59,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM060",
+        "centralSeq": 60,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM061",
+        "centralSeq": 61,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM062",
+        "centralSeq": 62,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM063",
+        "centralSeq": 63,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM064",
+        "centralSeq": 64,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM065",
+        "centralSeq": 65,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM066",
+        "centralSeq": 66,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM067",
+        "centralSeq": 67,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM068",
+        "centralSeq": 68,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM069",
+        "centralSeq": 69,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM070",
+        "centralSeq": 70,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM071",
+        "centralSeq": 71,
+        "station": "s2",
+        "active": true
+    },
+    {
+        "itemId": "CM072",
+        "centralSeq": 72,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM073",
+        "centralSeq": 73,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM074",
+        "centralSeq": 74,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM075",
+        "centralSeq": 75,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM076",
+        "centralSeq": 76,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM077",
+        "centralSeq": 77,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM078",
+        "centralSeq": 78,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM079",
+        "centralSeq": 79,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM080",
+        "centralSeq": 80,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM081",
+        "centralSeq": 81,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM082",
+        "centralSeq": 82,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM083",
+        "centralSeq": 83,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM084",
+        "centralSeq": 84,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM085",
+        "centralSeq": 85,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM086",
+        "centralSeq": 86,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM087",
+        "centralSeq": 87,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM088",
+        "centralSeq": 88,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM089",
+        "centralSeq": 89,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM090",
+        "centralSeq": 90,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM091",
+        "centralSeq": 91,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM092",
+        "centralSeq": 92,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM093",
+        "centralSeq": 93,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM094",
+        "centralSeq": 94,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM095",
+        "centralSeq": 95,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM096",
+        "centralSeq": 96,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM097",
+        "centralSeq": 97,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM098",
+        "centralSeq": 98,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM099",
+        "centralSeq": 99,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM100",
+        "centralSeq": 100,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM101",
+        "centralSeq": 101,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM102",
+        "centralSeq": 102,
+        "station": "s1",
+        "active": true
+    },
+    {
+        "itemId": "CM103",
+        "centralSeq": 103,
+        "station": "s1",
+        "active": true
+    }
+
+  ]
+}
