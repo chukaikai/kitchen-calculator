@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>廚房回推計算機</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang TC", "Microsoft JhengHei", sans-serif;
+    background: #f5f4f0;
+    color: #222;
+    margin: 0;
+    padding: 16px;
+  }
+  h1 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0 0 16px;
+  }
+  .station-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  .station-btn {
+    background: #fff;
+    border: 1px solid #e0ddd3;
+    border-radius: 14px;
+    padding: 24px 12px;
+    text-align: center;
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .station-btn:active { background: #eee; }
+  .station-btn.disabled { color: #bbb; }
+  .back-btn {
+    display: inline-block;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: #666;
+    cursor: pointer;
+    padding: 6px 0;
+  }
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e0ddd3;
+    padding: 16px 18px;
+    margin-bottom: 12px;
+  }
+  .card p.title {
+    font-weight: 600;
+    font-size: 16px;
+    margin: 0 0 10px;
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .input-row label {
+    font-size: 13px;
+    color: #666;
+    white-space: nowrap;
+  }
+  .input-row input {
+    width: 110px;
+    height: 36px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    padding: 0 10px;
+    font-size: 15px;
+  }
+  .input-row span.unit {
+    font-size: 13px;
+    color: #999;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+  }
+  .row:last-child { border-bottom: none; }
+  .row span.name { color: #555; }
+  .row span.val { font-weight: 600; }
+  .note {
+    font-size: 12px;
+    color: #999;
+    margin-top: 6px;
+  }
+
+  .allergen-btn {
+    grid-column: 1 / -1;
+    background: #fff7e8;
+    border-color: #e7c98f;
+    color: #704d10;
+  }
+  .allergen-toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: #f5f4f0;
+    padding: 2px 0 12px;
+  }
+  .search-box {
+    width: 100%;
+    height: 44px;
+    border: 1px solid #cfc9bb;
+    border-radius: 10px;
+    padding: 0 13px;
+    font-size: 16px;
+    background: #fff;
+  }
+  .allergen-summary {
+    margin: 10px 0 0;
+    font-size: 13px;
+    color: #6d675c;
+  }
+  .allergen-card .product-code {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 8px;
+  }
+  .allergen-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0 12px;
+  }
+  .allergen-tag {
+    display: inline-block;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #fff0d6;
+    border: 1px solid #efd19b;
+    color: #714c0a;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .material-title {
+    margin: 0 0 5px;
+    color: #666;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .material-text {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.65;
+    color: #3f3f3f;
+    white-space: pre-wrap;
+  }
+  .warning-box {
+    background: #fff8e8;
+    border: 1px solid #ead5a5;
+    color: #654a15;
+    border-radius: 10px;
+    padding: 11px 12px;
+    font-size: 12px;
+    line-height: 1.55;
+    margin-bottom: 12px;
+  }
+  .empty-state {
+    background: #fff;
+    border: 1px dashed #cfc9bb;
+    border-radius: 12px;
+    padding: 28px 16px;
+    text-align: center;
+    color: #777;
+  }
+  details.merged-list {
+    background: #fff;
+    border: 1px solid #e0ddd3;
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  details.merged-list summary {
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .merged-item {
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 13px;
+  }
+  .merged-item:last-child { border-bottom: none; }
+  .merged-code { color: #999; font-size: 12px; }
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+const stations = {
+  cold: { name:'冷台', items:[
+    { key:'greens', name:'混合生菜', mode:'weight', base:1700,
+      ing:[['羽衣甘藍',300,300,'盒'],['裁切美生菜',1400,700,'盒']] },
+    { key:'cucumberslice', name:'小黃瓜片', mode:'packInv', packSize:400, packUnit:'盒' },
+    { key:'redonion', name:'紫洋蔥絲', mode:'packInv', packSize:250, packUnit:'盒' },
+    { key:'quinoa', name:'紅藜麥', mode:'cook',
+      raw:[['紅藜麥',750,500,'BAG'],['RO水',1125],['鹽巴',17,1000,'包'],['蒜頭(需挑掉)',20]],
+      cookedBase:1500, boxSize:250 },
+    { key:'barley', name:'洋薏仁', mode:'cook',
+      raw:[['洋薏仁',350,1000,'BAG'],['RO水',600],['鹽巴',3.5,1000,'包']],
+      cookedBase:1000, boxSize:250 },
+    { key:'tomato', name:'醃番茄(整批配方)', mode:'batch',
+      ing:[['蕃茄醃汁',1,'包'],['小紅番茄',1000,'g'],['乾蔥',65,'g'],['百里香',5,'g'],['初榨橄欖油',350,'g',2760,'瓶'],['彩色番茄',1000,'g']] },
+    { key:'burrata', name:'布拉塔蕃茄汁', mode:'burrata' },
+    { key:'truffle', name:'松露醬', mode:'weightBox', base:240, boxSize:240, boxUnit:'罐',
+      ing:[['黑松露醬',80,500,'CAN'],['布拉塔蕃茄醃汁',160]] },
+    { key:'cheddar', name:'切達丁', mode:'packInv2', boxSize:250, boxUnit:'盒', bagSize:1000, bagUnit:'包' },
+    { key:'corn', name:'玉米沙拉', mode:'weightBox', base:1550, boxSize:250, boxUnit:'盒',
+      ing:[['玉米粒',1140,340,'罐',12,'組'],['紅椒丁',250],['檸檬汁',150],['鹽',5,1000,'包'],['糖',5,1000,'包']] },
+    { key:'peanutcrumb', name:'花生碎', mode:'packInv2', boxSize:250, boxUnit:'盒', bagSize:1000, bagUnit:'BAG' },
+    { key:'sesamecooked', name:'熟白芝麻', mode:'packInv2', boxSize:250, boxUnit:'盒', bagSize:1000, bagUnit:'BAG' },
+    { key:'octopus', name:'章魚', mode:'packInv', packSize:375, packUnit:'盒', customNote:'1份75g x 5份/盒 = 375g/盒' },
+    { key:'octosalad', name:'章魚沙拉', mode:'weightBox', base:10, boxSize:10, boxUnit:'盒',
+      ing:[['芝麻葉',8,500,'包'],['西芹葉',2]] },
+    { key:'sausage', name:'綠胡椒臘腸', mode:'packInv', packSize:250, packUnit:'盒' },
+    { key:'vinai', name:'檸檬油醋', mode:'weightBox', base:246, boxSize:246, boxUnit:'罐',
+      ing:[['黃檸檬汁',60],['RO水',60],['初榨橄欖油',120,2760,'瓶'],['鹽',3,1000,'包'],['糖',3,1000,'包']] },
+    { key:'mint', name:'薄荷醬', mode:'weight', base:374,
+      ing:[['羅望子醬',20,454,'罐'],['帕馬森起司粉',24,1000,'BAG'],['小茴香粉',12],['鹽巴',6,1000,'包'],['初榨橄欖油',150,2760,'瓶'],['綠檸檬皮',2],['柳橙丁',100],['薄荷',30],['平葉巴西里',10],['香菜',10],['蒜泥',10]] },
+    { key:'cucumber', name:'醃漬小黃瓜丁', mode:'weight', base:146,
+      ing:[['小黃瓜丁',100],['鹽',5,1000,'包'],['糖',1,1000,'包'],['蒜泥',10],['甘蔥碎',10],['亨氏白醋',20]] },
+    { key:'apricot', name:'醃漬杏桃丁', mode:'weight', base:2,
+      ing:[['杏桃切丁',1],['杏桃醃汁',1,100,'BAG']] }
+  ]},
+  pizza: { name:'PIZZA', items:[
+    { key:'mozzarella', name:'馬茲瑞拉起司', mode:'packInv', packSize:4000, packUnit:'盒', displayUnit:'kg' },
+    { key:'pizzasauce', name:'pizza醬', mode:'weightBox', base:2562.5, boxSize:5125, boxUnit:'盒',
+      ing:[['ORO蕃茄罐頭',2500,2500,'桶'],['鹽',25,1000,'包'],['糖',37.5,1000,'包']] },
+    { key:'shallotring', name:'乾蔥圈', mode:'packInv', packSize:400, packUnit:'盒' },
+    { key:'fontal', name:'佛特樂-乾酪', mode:'packInv2', boxSize:500, boxUnit:'盒', bagSize:2500, bagUnit:'包' },
+    { key:'italianmeat', name:'烤義式絞肉', mode:'cookYield', boxSize:400, boxUnit:'盒', yieldRatio:0.8,
+      rawName:'生義式絞肉', rawPackSize:1000, rawPackUnit:'包' },
+    { key:'mushroom', name:'烤香菇片', mode:'cookYield', boxSize:500, boxUnit:'盒', yieldRatio:0.5,
+      rawName:'生香菇片' }
+  ]},
+  s1: { name:'S1', items:[
+    { key:'mushroom_ingredients', name:'炒香菇（盤點盒數→原料）', mode:'weightBox', base:2900, boxSize:1000, boxUnit:'盒',
+      ing:[['香菇',1000],['蘑菇',1000],['鴻禧菇',900,150,'包']] },
+    { key:'mushroom_raw', name:'生混菇（熟重→生料）', mode:'cookYieldWeight', yieldRatio:0.8, rawName:'生混菇', rawPackSize:1000, rawPackUnit:'盒' },
+    { key:'chive', name:'蝦夷蔥', mode:'packInv', packSize:25, packUnit:'盒', displayUnit:'kg' },
+    { key:'mushroomjuice', name:'菇汁', mode:'packInv', packSize:500, packUnit:'盒' },
+    { key:'chickenthigh', name:'分雞腿', mode:'packInv', packSize:110, packUnit:'份', displayUnit:'kg' },
+    { key:'beefrib', name:'分牛肋', mode:'packInv', packSize:110, packUnit:'份', displayUnit:'kg' },
+    { key:'burgerveg', name:'漢堡菜', mode:'weightBox', base:40, boxSize:40, boxUnit:'份', displayUnit:'kg',
+      ing:[['牛蕃茄',30],['奶油萵苣',10]] },
+    { key:'potato', name:'馬鈴薯', mode:'packInv', packSize:200, packUnit:'份', displayUnit:'kg' },
+    { key:'shortrib', name:'牛小排', mode:'packInv', packSize:210, packUnit:'份', displayUnit:'kg' },
+    { key:'eggwash', name:'蛋刷醬', mode:'weightBox', base:340, boxSize:340, boxUnit:'盒',
+      ing:[['蛋白液',100,970,'罐'],['玉米澱粉',70,375,'盒'],['芥末子醬',170,1000,'罐']] },
+    { key:'beefjus', name:'牛汁', mode:'weightBox', base:100, boxSize:100, boxUnit:'盒',
+      ing:[['澄清牛肉汁',50],['褐色雞湯',50,200,'包']] },
+    { key:'eggplant', name:'茄子', mode:'packInv', packSize:280, packUnit:'份', displayUnit:'kg' }
+  ]},
+  s2: { name:'S2', items:[
+    { key:'parsley_chopped', name:'巴西里碎', mode:'packInv', packSize:50, packUnit:'盒', displayUnit:'kg' },
+    { key:'parsley_leaf', name:'巴西里葉', mode:'packInv', packSize:100, packUnit:'盒', displayUnit:'kg' },
+    { key:'spinach', name:'菠菜', mode:'packInv', packSize:150, packUnit:'盒', displayUnit:'kg' },
+    { key:'shrimp', name:'蝦仁', mode:'packInv2', boxSize:400, boxUnit:'盒', bagSize:3000, bagUnit:'包',
+      customNote:'1盒8份，每份50g，共400g；蝦仁3kg/包。' },
+    { key:'squid_strip', name:'墨魚絲', mode:'packInv2', boxSize:300, boxUnit:'盒', bagSize:640, bagUnit:'包',
+      customNote:'300g/盒；墨魚絲640g/包。' },
+    { key:'shallot_chopped', name:'甘蔥碎', mode:'packInv', packSize:50, packUnit:'盒', displayUnit:'kg' },
+    { key:'scallion_strip', name:'蔥絲', mode:'packInv', packSize:30, packUnit:'盒', displayUnit:'kg' },
+    { key:'green_chili', name:'綠辣椒片', mode:'packInv', packSize:50, packUnit:'盒', displayUnit:'kg' },
+    { key:'green_salsa', name:'綠沙沙醬', mode:'weightBox', base:450, boxSize:450, boxUnit:'罐',
+      ing:[['巴西里青醬',250,250,'包'],['玉米糖膠',50,1000,'包'],['鹽',2,1000,'包'],['RO水',150]],
+      customNote:'每罐盤點450g；基礎配方：巴西里青醬250g＋玉米糖膠50g＋鹽2g＋RO水150g。' },
+    { key:'bolognese', name:'波隆那肉醬', mode:'yieldPackInv', boxSize:1800, boxUnit:'桶',
+      rawPackSize:2000, rawPackUnit:'包', yieldPerPack:1800,
+      customNote:'波隆那肉醬2kg/包，煮完約得1800g，等於1桶。' },
+    { key:'joel_tomato', name:'喬爾蕃茄醬', mode:'joelTomato', boxSize:1650, boxUnit:'桶',
+      customNote:'1罐喬爾碎粒番茄2.5kg約可做1.25桶；每罐另加糖53.5g、鹽17.8g。' },
+    { key:'vodka_spicy', name:'伏特加辣番茄醬', mode:'bucketPack', boxUnit:'桶', packFactor:2, packUnit:'包' },
+    { key:'lamb_sauce', name:'燉羊肉醬', mode:'bucketPack', boxUnit:'桶', packFactor:1, packUnit:'包' },
+    { key:'squid_meat_sauce', name:'墨魚肉醬', mode:'bucketPack', boxUnit:'桶', packFactor:1, packUnit:'包' },
+    { key:'clam_sauce', name:'蛤蠣醬', mode:'bucketPack', boxUnit:'桶', packFactor:2, packUnit:'包' },
+    { key:'shrimp_sauce', name:'蝦醬', mode:'weightBox', base:4800, boxSize:1600, boxUnit:'桶',
+      ing:[['紅蝦高湯',3200,1600,'BAG'],['艾樂薇35%動物鮮奶油',1600,1000,'罐'],['鹽',72,1000,'包']],
+      customNote:'修正版：2包紅蝦高湯＋1600g鮮奶油＋72g鹽，約可分裝3桶1600g；系統依3桶比例回推。' }
+  ]}
+};
+
+const allergenData = [{"code":"CKH000044","name":"原味瑞可塔起司 1000G/BAG","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: Zanetti MASCARPONE (500G/box)(淺藍)、戀鮮奶 (936ml/btl). B、瑞可塔起司500g/盒"},{"code":"CKC000006","name":"墨西哥沙拉醬-800G/BAG","allergens":"蛋、亞硫酸鹽類","materials":"蛋: Best Foods美乃滋1.9公升/瓶；亞硫酸鹽類: SYSCO 白酒醋3.78L/BOT ."},{"code":"CKC000017","name":"山羊起司醬 100G/BAG","allergens":"牛奶/羊奶、蛋","materials":"牛奶/羊奶: 山羊乳酪起司594G/PACK . 2條/組、戀鮮奶 (936ml/btl). B、酸奶2K(袋裝)/BAG.；蛋: Best Foods美乃滋1.9公升/瓶"},{"code":"CKH000003","name":"札塔沙拉醬-800G/BAG","allergens":"蛋、芝麻","materials":"蛋: Best Foods美乃滋1.9公升/瓶；芝麻: CKSC-白芝麻醬 KG、熟白芝麻1K/包"},{"code":"CKC000013","name":"檸檬瑞可塔起司-400G/BAG","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: Mukki馬司卡彭起司 500G/罐(深藍) B、Zanetti MASCARPONE (500G/box)(淺藍)、原味瑞可塔起司 1000G/BAG、帕達諾起司粉 1000G/BAG、戀鮮奶 (936ml/btl). B、瑞可塔起司500g/盒"},{"code":"CKC000003","name":"泰式沙拉醬-800G/包","allergens":"魚類、蛋、芝麻","materials":"魚類: 金美達特級魚露750G/罐；蛋: Best Foods美乃滋1.9公升/瓶；芝麻: CKSC-白芝麻醬 KG、熟白芝麻1K/包"},{"code":"CKC000011","name":"章魚美乃滋-600G/BAG","allergens":"蛋","materials":"蛋: Best Foods美乃滋1.9公升/瓶"},{"code":"CKC000016","name":"紅辣椒起司醬 500G/BAG","allergens":"牛奶/羊奶、蛋、大豆","materials":"牛奶/羊奶: 奶油孔酪(2K)-菲力/PACK .、紅切達起司 Cheese Cheddar Block/ kg；蛋: Best Foods美乃滋1.9公升/瓶；大豆: French's烏斯特醬油 (295ml/can). ."},{"code":"CKH000005","name":"羊排紅椒醬-300G/BAG","allergens":"亞硫酸鹽類","materials":"亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN ."},{"code":"CKC000009","name":"蒔蘿優格醬-800G/BAG","allergens":"牛奶/羊奶、蛋","materials":"牛奶/羊奶: 德國原味優格3.5% 1L 12入/箱、戀鮮奶 (936ml/btl). B；蛋: Best Foods美乃滋1.9公升/瓶"},{"code":"CKC000018","name":"農夫派底醬 1800G/BAG","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: Zanetti MASCARPONE (500G/box)(淺藍)、原味瑞可塔起司 1000G/BAG、帕達諾起司粉 1000G/BAG、戀鮮奶 (936ml/btl). B、瑞可塔起司500g/盒"},{"code":"CKH000010","name":"雞肝慕斯 350G/BAG","allergens":"牛奶/羊奶、魚類、亞硫酸鹽類、蛋","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B、戀鮮奶 (936ml/btl). B、艾樂薇 35%動物鮮奶油 (1L/12btl/cs). . B；魚類: Talatta 小鯷魚750G/罐；亞硫酸鹽類: DOC瑪薩拉葡萄酒17% 750ml/BTL .；蛋: 葉黃素是好蛋L /PC"},{"code":"CKC000014","name":"香菇派底醬-1100G/BAG","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: Zanetti MASCARPONE (500G/box)(淺藍)、原味瑞可塔起司 1000G/BAG、帕達諾起司粉 1000G/BAG、戀鮮奶 (936ml/btl). B、瑞可塔起司500g/盒"},{"code":"CKC000020","name":"鯷魚奶油 300G/EA","allergens":"牛奶/羊奶、魚類、大豆","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B；魚類: CKRT-鯷魚泥備製 Anchovy Paste 1X-8oz、Talatta 小鯷魚750G/罐、金美達特級魚露750G/罐；大豆: French's烏斯特醬油 (295ml/can). .、大豆沙拉油Soy Oil/ 2.6L / 瓶"},{"code":"CKC000022","name":"黑蒜醬 300G/BAG","allergens":"魚類","materials":"魚類: 柴魚片-鱻600g/包"},{"code":"CKH000031","name":"伏特加辣番茄醬 850G/BAG","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: RT帕馬森起司絲、SAPUTO無鹽奶油 (454g/20ea/cs). . B、艾樂薇 35%動物鮮奶油 (1L/12btl/cs). . B"},{"code":"CKH000026","name":"墨魚肉醬-1.2KG/BAG","allergens":"魚類、含麩質穀物","materials":"魚類: 墨魚汁500G/BOT .、章魚/500-700/KG；含麩質穀物: 00麵粉25KG/BAG ."},{"code":"CKH000025","name":"帕馬森起司高湯 1KG/BAG","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: 硬質帕達諾Padano KG(起司皮)"},{"code":"CKH000029","name":"燉羊肉醬 1800G/BAG","allergens":"牛奶/羊奶、亞硫酸鹽類","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B；亞硫酸鹽類: SYSCO 紅酒醋3.78L/BOT ."},{"code":"CKH000035","name":"白洋蔥底醬 125G/BAG","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B、戀鮮奶 (936ml/btl). B"},{"code":"熱醬-白醬","name":"白醬","allergens":"含麩質穀物、牛奶/羊奶","materials":"含麩質穀物: 布瑟 T55 法國小麥粉/25kg/BAG .；牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B、戀鮮奶 (936ml/btl). B"},{"code":"CKH000032","name":"紅蝦高湯 1600G/BAG","allergens":"甲殼類、亞硫酸鹽類","materials":"甲殼類: 紅蝦頭/公斤；亞硫酸鹽類: SYSCO 白酒醋3.78L/BOT ."},{"code":"CKH000036","name":"紫高麗菜泥 250G/BAG","allergens":"亞硫酸鹽類","materials":"亞硫酸鹽類: 料理紅酒5L/BOT ."},{"code":"CKH000028","name":"蛤蠣醬-850G/BAG","allergens":"牛奶/羊奶、魚類、大豆、亞硫酸鹽類","materials":"牛奶/羊奶: 安格拉發酵奶油 25K/BOX .；魚類: CKRT-鯷魚泥備製 Anchovy Paste 1X-8oz、Talatta 小鯷魚750G/罐；大豆: 大豆沙拉油Soy Oil/ 2.6L / 瓶；亞硫酸鹽類: SYSCO 白酒醋3.78L/BOT ."},{"code":"CKRTCP26","name":"CKRT-塔塔醬 1X Tartare Sauce- 16oz","allergens":"亞硫酸鹽類、蛋","materials":"亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN .；蛋: Kraft美乃滋 Mayonnaise 1gal(3.79L)/tub"},{"code":"CKRTCP27","name":"CKRT-義大利油醋醬 Italian Dressing (1X224oz.vol)","allergens":"魚類、大豆","materials":"魚類: CKRT-鯷魚泥備製 Anchovy Paste 1X-8oz、Talatta 小鯷魚750G/罐；大豆: 大豆沙拉油Soy Oil/ 2.6L / 瓶"},{"code":"CKRTCP29","name":"CKRT-Test-藍乳酪醬 Scratch Bleu Cheese Dressing (1X768oz.vol)","allergens":"牛奶/羊奶、蛋","materials":"牛奶/羊奶: RT藍乳酪碎、無糖優酪乳Buttermilk/ 1830ml/tub；蛋: Kraft美乃滋 Mayonnaise 1gal(3.79L)/tub"},{"code":"CKRTCP25","name":"CKRT-Test-鄉村沙拉醬 Scratch Ranch Dressing (1X832oz.vol)","allergens":"牛奶/羊奶、蛋","materials":"牛奶/羊奶: 無糖優酪乳Buttermilk/ 1830ml/tub；蛋: Kraft美乃滋 Mayonnaise 1gal(3.79L)/tub"},{"code":"CKRTCP23","name":"CKRT-金黃蜂蜜芥末醬 Gold Honey Mustard Dressing","allergens":"亞硫酸鹽類、大豆、蛋","materials":"亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN .；大豆: 大豆沙拉油Soy Oil/ 2.6L / 瓶；蛋: Kraft美乃滋 Mayonnaise 1gal(3.79L)/tub"},{"code":"CKRTCP24","name":"CKRT-凱薩醬 Caesar Dressing (1X576oz.vol)","allergens":"魚類、大豆、牛奶/羊奶、亞硫酸鹽類、蛋","materials":"魚類: CKRT-鯷魚泥備製 Anchovy Paste 1X-8oz、Talatta 小鯷魚750G/罐；大豆: French's烏斯特醬油 (295ml/can). .、大豆沙拉油Soy Oil/ 2.6L / 瓶；牛奶/羊奶: RT帕馬森起司碎、無糖優酪乳Buttermilk/ 1830ml/tub；亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN .；蛋: Kraft美乃滋 Mayonnaise 1gal(3.79L)/tub"},{"code":"CKRTCP18","name":"CKRT-起司球餡料 Cheesy Bite Filling (1XBatch)","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: RT傑克起司絲、安佳動物性鮮奶油 35.1% /1L/box、玉米粉 /(600g/bag)(起司餡料用)、馬自拉起司 Cheese Mozzarella Block/ kg"},{"code":"CKRTDM001","name":"CKRT-肉串醃汁 Kebab Marinade 1X - 352 oz.vol","allergens":"亞硫酸鹽類、大豆","materials":"亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN .；大豆: 大豆沙拉油Soy Oil/ 2.6L / 瓶"},{"code":"CKC030","name":"LA凱薩醬 1250G/包","allergens":"亞硫酸鹽類、大豆、蛋、魚類、牛奶/羊奶","materials":"亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN .、SYSCO 紅酒醋3.78L/BOT .；大豆: French's烏斯特醬油 (295ml/can). .、大豆沙拉油Soy Oil/ 2.6L / 瓶；蛋: Best Foods美乃滋1.9公升/瓶、Kraft美乃滋 Mayonnaise 1gal(3.79L)/tub；魚類: CKRT-鯷魚泥備製 Anchovy Paste 1X-8oz、Talatta 小鯷魚750G/罐；牛奶/羊奶: 帕達諾起司粉 1000G/BAG"},{"code":"CKC028","name":"LA甜辣美乃滋 400G/包","allergens":"蛋","materials":"蛋: Best Foods美乃滋1.9公升/瓶"},{"code":"CKC034","name":"LA芥末油醋汁 420G/包","allergens":"亞硫酸鹽類、大豆、蛋","materials":"亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN .、SYSCO 紅酒醋3.78L/BOT .；大豆: 大豆沙拉油Soy Oil/ 2.6L / 瓶；蛋: Kraft美乃滋 Mayonnaise 1gal(3.79L)/tub"},{"code":"CKC058","name":"LA楓糖奶油醬 900g/包","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B"},{"code":"CKC045","name":"LA義大利酒醋奶油 900g/包","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B"},{"code":"CKC046","name":"LA Chipotle 奶油 900g/包","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B"},{"code":"CKC033","name":"LA炸雞麵粉 2000G/包","allergens":"含麩質穀物","materials":"含麩質穀物: 中筋麵粉/KG ."},{"code":"CKC035","name":"LA玉米調味粉 400G/包","allergens":"含麩質穀物","materials":"含麩質穀物: 中筋麵粉/KG ."},{"code":"CKC032","name":"LA塔塔醬 680G/包","allergens":"蛋","materials":"蛋: Best Foods美乃滋1.9公升/瓶"},{"code":"CKC031","name":"LA芥末美乃滋 400G/包","allergens":"亞硫酸鹽類、大豆、蛋","materials":"亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN .、SYSCO 紅酒醋3.78L/BOT .；大豆: 大豆沙拉油Soy Oil/ 2.6L / 瓶；蛋: Best Foods美乃滋1.9公升/瓶、Kraft美乃滋 Mayonnaise 1gal(3.79L)/tub"},{"code":"CKH048","name":"LA甜辣椒果醬 480G/包","allergens":"亞硫酸鹽類","materials":"亞硫酸鹽類: SYSCO 紅酒醋3.78L/BOT ."},{"code":"CKH046","name":"LA四川辣油 800G/包","allergens":"大豆","materials":"大豆: 龜甲萬醬油(非基改). (1600cc/btl). ."},{"code":"CKH047","name":"LA番茄湯 2500G/包","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B、艾樂薇 35%動物鮮奶油 (1L/12btl/cs). . B"},{"code":"CKH052","name":"LA焦化洋蔥醬 500G/包","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B"},{"code":"CKH049","name":"LA法式牛排醬 240G/包","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: Frischli 德國酸奶油 24% (1L/12btl/cs)、SAPUTO無鹽奶油 (454g/20ea/cs). . B、艾樂薇 35%動物鮮奶油 (1L/12btl/cs). . B"},{"code":"CKH050","name":"LA藍莓波本醬 450G/包","allergens":"大豆","materials":"大豆: 龜甲萬醬油(非基改). (1600cc/btl). ."},{"code":"CKH057","name":"LA 墨西哥街頭玉米 1150g/包","allergens":"蛋、牛奶/羊奶、亞硫酸鹽類、大豆","materials":"蛋: Best Foods美乃滋1.9公升/瓶、Kraft美乃滋 Mayonnaise 1gal(3.79L)/tub；牛奶/羊奶: Frischli 德國酸奶油 24% (1L/12btl/cs)、帕達諾起司粉 1000G/BAG；亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN .、SYSCO 紅酒醋3.78L/BOT .；大豆: 大豆沙拉油Soy Oil/ 2.6L / 瓶"},{"code":"CKC000019","name":"香料麵包粉(牛小排) 200G/BAG","allergens":"含麩質穀物","materials":"含麩質穀物: 麵包碎(中)"},{"code":"CKC000012","name":"醃黃瓜片-300G/BAG","allergens":"亞硫酸鹽類","materials":"亞硫酸鹽類: SYSCO 白酒醋3.78L/BOT ."},{"code":"CKC000015","name":"A-PEN麵包粉-500G/BAG","allergens":"含麩質穀物","materials":"含麩質穀物: 日式麵包粉3KG/BAG .、麵包碎(中)"},{"code":"CKH000018","name":"香蒜麵包碎-200G/BAG","allergens":"含麩質穀物、牛奶/羊奶","materials":"含麩質穀物: 麵包碎(中)；牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B"},{"code":"CKH000033","name":"白酒甘蔥碎 200G/BAG","allergens":"亞硫酸鹽類","materials":"亞硫酸鹽類: SYSCO 白酒醋3.78L/BOT .、料理白酒5L/BTL ."},{"code":"CKH000030","name":"醃紅辣椒片 125G/BAG","allergens":"亞硫酸鹽類","materials":"亞硫酸鹽類: SYSCO 紅酒醋3.78L/BOT ."},{"code":"CKH000004","name":"札塔麵包碎-200G/BAG","allergens":"芝麻、含麩質穀物","materials":"芝麻: 熟白芝麻1K/包；含麩質穀物: 麵包碎(大)"},{"code":"CKH000007","name":"焦化洋蔥泥-200G/BAG","allergens":"牛奶/羊奶","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B"},{"code":"CKH000008","name":"紅酒醋凍-450G/BAG","allergens":"亞硫酸鹽類","materials":"亞硫酸鹽類: O MED卡本內紅酒醋2L/CAN ."},{"code":"CKH000042","name":"醃杏桃醋汁(羊排) 100G/BAG","allergens":"亞硫酸鹽類","materials":"亞硫酸鹽類: SYSCO 白酒醋3.78L/BOT ."},{"code":"CKH000023","name":"香料雞汁-200G/BAG","allergens":"牛奶/羊奶、亞硫酸鹽類","materials":"牛奶/羊奶: SAPUTO無鹽奶油 (454g/20ea/cs). . B；亞硫酸鹽類: 料理白酒5L/BTL ."},{"code":"CKMM000002","name":"舒肥章魚 KG(小數點後2位)","allergens":"魚類","materials":"魚類: 章魚/500-700/KG"}];
+const mergedAllergenData = [{"code":"CKRTCP15","name":"CKRT-鯷魚泥備製 Anchovy Paste 1X-8oz"},{"code":"CKSC000001","name":"CKSC-泰式香料汁 1700G/BAG"},{"code":"CKSC000002","name":"CKSC-白芝麻醬 KG"},{"code":"CKSC000004","name":"CKSC-札塔綜合香料 G"},{"code":"CKSH000001","name":"CKSH-雞肝底醬 KG"},{"code":"CKSH000002","name":"CKSH-醃黃瓜汁 KG"},{"code":"CKSH000006","name":"CKSH-蛤蠣汁-倍"},{"code":"CKSH000007","name":"CKSH-出汁 KG"}];
+
+function fmt(n){ return (Math.round(n*10)/10).toLocaleString(); }
+
+function fmtKg(g){
+  let s = (g/1000).toFixed(3);
+  s = s.replace(/0+$/,'').replace(/\.$/,'');
+  if(s==='' || s==='-0') s='0';
+  return s + ' kg';
+}
+
+function fmtLine(n,g,unit,packSize,packUnit,groupSize,groupUnit,displayKg){
+  let text = displayKg ? fmtKg(g) : fmt(g)+' '+(unit||'g');
+  if(packSize){
+    const packQty = g/packSize;
+    text += ` (≈${fmt(packQty)} ${packUnit||'罐'}`;
+    if(groupSize){ text += `，約${fmt(packQty/groupSize)} ${groupUnit||'組'}`; }
+    text += `)`;
+  }
+  return [n, text];
+}
+
+function inputRowHtml(label, id, placeholder, unit){
+  return `<div class="input-row">
+    <label>${label}</label>
+    <input type="number" min="0" step="0.1" id="${id}" placeholder="${placeholder}" />
+    <span class="unit">${unit}</span>
+  </div>`;
+}
+
+function rowsHtml(rows){
+  return rows.map(([n,v])=>`<div class="row"><span class="name">${n}</span><span class="val">${v}</span></div>`).join('');
+}
+
+const root = document.getElementById('root');
+
+function showHome(){
+  root.innerHTML = `<h1>選擇功能</h1><div class="station-grid" id="station-grid"></div>`;
+  const grid = document.getElementById('station-grid');
+  Object.keys(stations).forEach(key=>{
+    const st = stations[key];
+    const btn = document.createElement('div');
+    btn.className = 'station-btn' + (st.items.length===0 ? ' disabled' : '');
+    btn.textContent = st.name + (st.items.length===0 ? '（尚未建立）' : '');
+    btn.onclick = ()=>{ if(st.items.length>0) showStation(key); };
+    grid.appendChild(btn);
+  });
+  const allergenBtn = document.createElement('div');
+  allergenBtn.className = 'station-btn allergen-btn';
+  allergenBtn.textContent = '⚠️ 過敏原查詢';
+  allergenBtn.onclick = showAllergens;
+  grid.appendChild(allergenBtn);
+}
+
+
+function escapeHtml(text){
+  return String(text ?? '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function splitAllergens(text){
+  return String(text || '')
+    .split(/[、，,／/]+/)
+    .map(x=>x.trim())
+    .filter(Boolean);
+}
+
+function showAllergens(){
+  root.innerHTML = `
+    <div class="back-btn" id="allergen-back">← 返回功能選擇</div>
+    <h1>過敏原查詢</h1>
+    <div class="warning-box">
+      本頁依「產品過敏原」檔案建立，共 ${allergenData.length} 項主產品。查詢結果僅供現場快速確認；
+      遇到嚴重過敏、原料替換、供應商配方變更或交叉接觸疑慮時，仍須再次核對最新包裝標示與內部規範。
+    </div>
+    <div class="allergen-toolbar">
+      <input class="search-box" id="allergen-search" type="search"
+        placeholder="搜尋產品、編號、過敏原或材料，例如：芝麻、雞肝、CKH000010">
+      <div class="allergen-summary" id="allergen-summary"></div>
+    </div>
+    <details class="merged-list">
+      <summary>查看併入主產品、不單獨列出的 ${mergedAllergenData.length} 項材料</summary>
+      <div id="merged-items"></div>
+    </details>
+    <div id="allergen-results"></div>`;
+  document.getElementById('allergen-back').onclick = showHome;
+  const search = document.getElementById('allergen-search');
+  search.addEventListener('input', ()=>renderAllergenResults(search.value));
+  document.getElementById('merged-items').innerHTML = mergedAllergenData.map(item=>`
+    <div class="merged-item">
+      <div>${escapeHtml(item.name)}</div>
+      <div class="merged-code">${escapeHtml(item.code)}</div>
+    </div>`).join('');
+  renderAllergenResults('');
+  setTimeout(()=>search.focus(), 0);
+}
+
+function renderAllergenResults(keyword){
+  const q = String(keyword || '').trim().toLowerCase();
+  const list = allergenData.filter(item=>{
+    const haystack = [item.code,item.name,item.allergens,item.materials].join(' ').toLowerCase();
+    return !q || haystack.includes(q);
+  });
+  document.getElementById('allergen-summary').textContent =
+    q ? `找到 ${list.length} 項符合「${keyword.trim()}」的結果` : `目前顯示全部 ${list.length} 項產品`;
+  const results = document.getElementById('allergen-results');
+  if(list.length===0){
+    results.innerHTML = `<div class="empty-state">找不到符合的產品。可改用較短的關鍵字，例如「奶」、「芝麻」、「醋」或產品編號。</div>`;
+    return;
+  }
+  results.innerHTML = list.map(item=>{
+    const tags = splitAllergens(item.allergens)
+      .map(tag=>`<span class="allergen-tag">${escapeHtml(tag)}</span>`).join('');
+    return `<div class="card allergen-card">
+      <p class="title">${escapeHtml(item.name)}</p>
+      <div class="product-code">${escapeHtml(item.code)}</div>
+      <div class="allergen-tags">${tags || '<span class="allergen-tag">未標示</span>'}</div>
+      <p class="material-title">過敏原來源材料</p>
+      <p class="material-text">${escapeHtml(item.materials || '未提供')}</p>
+    </div>`;
+  }).join('');
+}
+
+
+function showStation(stationKey){
+  const station = stations[stationKey];
+  root.innerHTML = `<div class="back-btn" id="back-btn">← 返回工作站選擇</div><h1>${station.name}回推計算機</h1><div id="app"></div>`;
+  document.getElementById('back-btn').onclick = showHome;
+  const app = document.getElementById('app');
+
+  station.items.forEach(item=>{
+    const card = document.createElement('div');
+    card.className = 'card';
+    let controlHtml = '';
+    let noteHtml = '';
+
+    if(item.mode==='weight') controlHtml = inputRowHtml('目標總重','in-'+item.key,'例如 500','g');
+    if(item.mode==='weightBox'){
+      controlHtml = inputRowHtml(`盤點${item.boxUnit}數(${item.boxSize}g/${item.boxUnit})`,'in-'+item.key,'例如 3',item.boxUnit);
+      if(item.key==='mushroom_ingredients'){
+        noteHtml = '<p class="note">基礎配方：香菇1kg＋蘑菇1kg＋鴻禧菇6包（150g/包），混勻後以1kg/盒分裝。</p>';
+      }
+    }
+    if(item.mode==='burrata'){
+      controlHtml = inputRowHtml('醃汁總重(玉米糖漿+蕃茄醃汁)','in-'+item.key,'例如 300','g');
+      noteHtml = '<p class="note">糖膠=醃汁×5%，初榨橄欖油=醃汁÷3（醃汁:油=3:1）</p>';
+    }
+    if(item.mode==='batch'){
+      controlHtml = inputRowHtml('倍數(幾份基礎配方)','in-'+item.key,'1','倍');
+      noteHtml = '<p class="note">此品項無固定盒重，盒數僅為分裝參考，不影響用量</p>';
+    }
+    if(item.mode==='cook'){
+      controlHtml = inputRowHtml(`目標盒數(每盒${item.boxSize}g熟重)`,'in-'+item.key,'例如 4','盒');
+      const rawDesc = item.raw.map(([n,b])=>`${n}${b}g`).join(':');
+      noteHtml = `<p class="note">生料 ${rawDesc}，煮熟約得${item.cookedBase}g，依此比例回推生料用量</p>`;
+    }
+    if(item.mode==='pack'){
+      controlHtml = inputRowHtml('目標重量','in-'+item.key,'例如 500','g');
+      noteHtml = `<p class="note">包裝規格 ${item.packSize}g/${item.packUnit}</p>`;
+    }
+    if(item.mode==='packInv'){
+      controlHtml = inputRowHtml('盤點盒數','in-'+item.key,'例如 3',item.packUnit);
+      noteHtml = `<p class="note">包裝規格 ${item.packSize}g/${item.packUnit}</p>`;
+    }
+    if(item.mode==='packInv2'){
+      controlHtml = inputRowHtml('盤點盒數','in-'+item.key,'例如 2',item.boxUnit);
+      noteHtml = `<p class="note">${item.boxSize}g/${item.boxUnit}，換算成 ${item.bagSize}g/${item.bagUnit}</p>`;
+    }
+    if(item.mode==='cookYield'){
+      controlHtml = inputRowHtml(`盤點${item.boxUnit}數(每${item.boxUnit}${item.boxSize}g熟重)`,'in-'+item.key,'例如 2',item.boxUnit);
+      const packNote = item.rawPackSize ? `，${item.rawName}換算單位 ${item.rawPackSize}g/${item.rawPackUnit}` : '';
+      noteHtml = `<p class="note">生熟轉換率 ${item.yieldRatio*100}%（1kg生料烤完約${item.yieldRatio*1000}g）${packNote}</p>`;
+    }
+    if(item.mode==='cookYieldWeight'){
+      controlHtml = inputRowHtml('熟品盤點重量','in-'+item.key,'例如 800','g');
+      const packNote = item.rawPackSize ? `，${item.rawName}換算單位 ${item.rawPackSize}g/${item.rawPackUnit}` : '';
+      noteHtml = `<p class="note">生熟轉換率 ${item.yieldRatio*100}%（1kg生料處理完約${item.yieldRatio*1000}g熟重）${packNote}</p>`;
+    }
+    if(item.mode==='yieldPackInv'){
+      controlHtml = inputRowHtml(`盤點${item.boxUnit}數(${item.boxSize}g/${item.boxUnit})`,'in-'+item.key,'例如 2',item.boxUnit);
+    }
+    if(item.mode==='joelTomato'){
+      controlHtml = inputRowHtml(`盤點${item.boxUnit}數(${item.boxSize}g/${item.boxUnit})`,'in-'+item.key,'例如 2',item.boxUnit);
+    }
+    if(item.mode==='bucketPack'){
+      controlHtml = inputRowHtml(`盤點${item.boxUnit}數`,'in-'+item.key,'例如 2',item.boxUnit);
+      noteHtml = `<p class="note">每${item.boxUnit}換算 ${item.packFactor} ${item.packUnit}</p>`;
+    }
+    if(item.customNote) noteHtml = `<p class="note">${item.customNote}</p>`;
+
+    card.innerHTML = `<p class="title">${item.name}</p>${controlHtml}<div id="out-${item.key}"></div>${noteHtml}`;
+    app.appendChild(card);
+
+    const inputEl = card.querySelector('#in-'+item.key);
+    const outEl = card.querySelector('#out-'+item.key);
+
+    function render(){
+      const v = parseFloat(inputEl.value);
+      let rows;
+
+      if(item.mode==='weight' || item.mode==='weightBox'){
+        const targetWeight = item.mode==='weightBox' ? v*item.boxSize : v;
+        const kgOut = item.displayUnit==='kg';
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml(item.ing.map(([n,b,packSize,packUnit,groupSize,groupUnit])=>{
+          const line = fmtLine(n,b,'g',packSize,packUnit,groupSize,groupUnit,kgOut);
+          return [line[0], line[1]+' (基礎)'];
+        })); return; }
+        const scale = targetWeight/item.base;
+        rows = item.ing.map(([n,b,packSize,packUnit,groupSize,groupUnit])=>fmtLine(n,b*scale,'g',packSize,packUnit,groupSize,groupUnit,kgOut));
+        if(item.mode==='weightBox'){ rows.unshift(['目標總重', (kgOut?fmtKg(targetWeight):fmt(targetWeight)+' g')+'（'+fmt(v)+' '+item.boxUnit+' x '+item.boxSize+'g）']); }
+      } else if(item.mode==='burrata'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['玉米糖膠(醃汁5%)','—'],['初榨橄欖油(醃汁/3)','—']]); return; }
+        rows = [
+          ['醃汁(玉米糖漿+蕃茄醃汁)', fmt(v)+' g'],
+          ['玉米糖膠(醃汁5%)', fmt(v*0.05)+' g'],
+          fmtLine('初榨橄欖油(醃汁:油=3:1)', v/3, 'g', 2760, '瓶')
+        ];
+      } else if(item.mode==='batch'){
+        const scale = (!v || v<=0) ? 1 : v;
+        rows = item.ing.map(([n,b,u,packSize,packUnit,groupSize,groupUnit])=>fmtLine(n,b*scale,u,packSize,packUnit,groupSize,groupUnit));
+      } else if(item.mode==='cook'){
+        const baseBoxes = item.cookedBase/item.boxSize;
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml(item.raw.map(([n,b,packSize,packUnit])=>{
+          const line = fmtLine(n,b,'g',packSize,packUnit);
+          return [line[0], line[1]+` (基礎，${item.cookedBase}g熟重/${fmt(baseBoxes)}盒)`];
+        })); return; }
+        const cookedTarget = v*item.boxSize;
+        const scale = cookedTarget/item.cookedBase;
+        rows = item.raw.map(([n,b,packSize,packUnit])=>fmtLine(n,b*scale,'g',packSize,packUnit));
+        rows.unshift(['預估熟重目標', fmt(cookedTarget)+' g（'+fmt(v)+' 盒 x '+item.boxSize+'g）']);
+      } else if(item.mode==='pack'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([fmtLine('需要數量', item.packSize, 'g', item.packSize, item.packUnit)]); return; }
+        rows = [fmtLine('需要數量', v, 'g', item.packSize, item.packUnit)];
+      } else if(item.mode==='packInv'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['總重', '—']]); return; }
+        const totalG = v*item.packSize;
+        const totalText = item.displayUnit==='kg' ? fmtKg(totalG) : fmt(totalG)+' g';
+        rows = [['總重', totalText+'（'+fmt(v)+' '+item.packUnit+' x '+item.packSize+'g）']];
+      } else if(item.mode==='packInv2'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['總重','—'],['換算包數','—']]); return; }
+        const totalG = v*item.boxSize;
+        rows = [
+          ['總重', fmt(totalG)+' g（'+fmt(v)+' '+item.boxUnit+' x '+item.boxSize+'g）'],
+          ['換算包數', fmt(totalG/item.bagSize)+' '+item.bagUnit]
+        ];
+      } else if(item.mode==='cookYield'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['熟重目標','—'],['需要生料重量','—']]); return; }
+        const cookedTotal = v*item.boxSize;
+        const rawNeeded = cookedTotal/item.yieldRatio;
+        rows = [
+          ['熟重目標', fmt(cookedTotal)+' g（'+fmt(v)+' '+item.boxUnit+' x '+item.boxSize+'g）'],
+          ['需要'+item.rawName, fmt(rawNeeded/1000)+' kg']
+        ];
+        if(item.rawPackSize){
+          rows.push(['換算包數', fmt(rawNeeded/item.rawPackSize)+' '+item.rawPackUnit]);
+        }
+      } else if(item.mode==='cookYieldWeight'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['需要生料重量','—'],['換算盒數','—']]); return; }
+        const rawNeeded = v/item.yieldRatio;
+        rows = [
+          ['熟重輸入', fmt(v)+' g'],
+          ['需要'+item.rawName, fmtKg(rawNeeded)]
+        ];
+        if(item.rawPackSize){
+          rows.push(['換算'+item.rawPackUnit+'數', fmt(rawNeeded/item.rawPackSize)+' '+item.rawPackUnit]);
+        }
+      } else if(item.mode==='yieldPackInv'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['成品總重','—'],['需要包數','—']]); return; }
+        const totalG = v * item.boxSize;
+        const packs = totalG / item.yieldPerPack;
+        rows = [
+          ['成品總重', fmtKg(totalG)+'（'+fmt(v)+' '+item.boxUnit+'）'],
+          ['需要波隆那肉醬', fmt(packs)+' '+item.rawPackUnit],
+          ['原料包裝重量', fmtKg(packs*item.rawPackSize)]
+        ];
+      } else if(item.mode==='joelTomato'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['成品總重','—'],['番茄罐頭','—'],['糖','—'],['鹽','—']]); return; }
+        const cans = v / 1.25;
+        rows = [
+          ['成品總重', fmtKg(v*item.boxSize)+'（'+fmt(v)+' '+item.boxUnit+'）'],
+          ['喬爾碎粒番茄(大)', fmt(cans)+' 罐（2.5kg/罐）'],
+          ['番茄罐頭重量', fmtKg(cans*2500)],
+          ['糖', fmt(cans*53.5)+' g'],
+          ['鹽', fmt(cans*17.8)+' g']
+        ];
+      } else if(item.mode==='bucketPack'){
+        if(!v || v<=0){ outEl.innerHTML = rowsHtml([['換算包數','—']]); return; }
+        rows = [['換算包數', fmt(v*item.packFactor)+' '+item.packUnit]];
+      }
+      outEl.innerHTML = rowsHtml(rows);
+    }
+    inputEl.addEventListener('input', render);
+    render();
+  });
+}
+
+showHome();
+</script>
+</body>
+</html>
